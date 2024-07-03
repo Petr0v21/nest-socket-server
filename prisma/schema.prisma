@@ -1,0 +1,75 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                    String                  @id @default(uuid())
+  telegramId            String                  @unique
+  username              String?
+  fullname              String
+  avatar                String?
+  balance               Int                     @default(100)
+  games                 Game[]
+  provablyFairUserSeeds ProvablyFairUserSeeds[]
+  bets                  Bet[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Game {
+  id           String   @id @unique @default(uuid())
+  isWon        Boolean  @default(false)
+  sideSelected CoinSide
+  sideResult   CoinSide
+
+  userId String
+  User   User   @relation(fields: [userId], references: [id])
+
+  bet       Bet?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Bet {
+  id        String    @id @default(uuid())
+  createdAt DateTime  @default(now())
+  settledAt DateTime?
+  userId    String
+  gameId    String    @unique
+  amount    Float
+  payout    Float     @default(0)
+  user      User      @relation(fields: [userId], references: [id])
+  game      Game      @relation(fields: [gameId], references: [id])
+
+  betData Json @default("{}")
+}
+
+model ProvablyFairUserSeeds {
+  id               String   @id @unique @default(uuid())
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  userId           String
+  serverSeed       String
+  clientSeed       String
+  hashedServerSeed String
+  nonce            Int      @default(1)
+  isActive         Boolean  @default(true)
+  user             User     @relation(fields: [userId], references: [id])
+}
+
+enum CoinSide {
+  HEADS
+  TAILS
+}

@@ -1,0 +1,92 @@
+# ------------------------------------------------------
+# THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
+# ------------------------------------------------------
+
+type UserDto {
+  id: String!
+  telegramId: String!
+  username: String
+  fullname: String!
+  avatar: String
+  balance: Float!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+}
+
+"""
+A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
+"""
+scalar DateTime
+
+type LeaderDto {
+  id: String!
+  username: String
+  fullname: String!
+  net_gains: Float!
+  last_bet_created_at: DateTime
+}
+
+type BetDto {
+  id: String!
+  amount: Float!
+  payout: Float!
+}
+
+type CoinFlipGameDto {
+  id: String!
+  isWon: Boolean!
+  sideSelected: String!
+  sideResult: String!
+  userId: String
+  createdAt: DateTime
+  updatedAt: DateTime
+}
+
+type GameDto {
+  id: String!
+  isWon: Boolean!
+  sideSelected: String!
+  sideResult: String!
+  userId: String
+  createdAt: DateTime
+  updatedAt: DateTime
+  User: UserDto!
+  bet: BetDto!
+}
+
+type CoinFlipBetGameDto {
+  id: String!
+  amount: Float!
+  payout: Float!
+  game: CoinFlipGameDto!
+}
+
+type ActualDetailsDto {
+  games: [GameDto!]!
+  ratioSides: [Int!]!
+}
+
+type SuccessOutput {
+  success: Boolean!
+}
+
+type ActiveClientsDto {
+  activeCliets: Int!
+}
+
+type Query {
+  getMe: UserDto!
+  getLeaders: [LeaderDto!]!
+  getActualDetails: ActualDetailsDto!
+  validateTelegramHash(query: String!): SuccessOutput!
+  getActiveClients: ActiveClientsDto!
+}
+
+type Mutation {
+  play(bet: Float!, side: CoinSide!): CoinFlipBetGameDto!
+}
+
+enum CoinSide {
+  HEADS
+  TAILS
+}
