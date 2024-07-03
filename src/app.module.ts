@@ -21,6 +21,7 @@ import { BetsModule } from './modules/bets/bets.module';
       driver: ApolloDriver,
       playground: true,
       autoSchemaFile: 'schema.gql',
+      introspection: process.env.NODE_ENV === 'production' ? true : undefined,
     }),
     EventEmitterModule.forRoot(),
     S3Module,
