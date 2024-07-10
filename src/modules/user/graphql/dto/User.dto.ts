@@ -1,4 +1,9 @@
-import { Field, ObjectType } from '@nestjs/graphql';
+import { Field, ObjectType, registerEnumType } from '@nestjs/graphql';
+import { LigaEnum } from '@prisma/client';
+
+registerEnumType(LigaEnum, {
+  name: 'LigaEnum',
+});
 
 @ObjectType()
 export class UserDto {
@@ -19,6 +24,15 @@ export class UserDto {
 
   @Field()
   balance: number;
+
+  @Field()
+  exp: number;
+
+  @Field()
+  level: number;
+
+  @Field(() => LigaEnum)
+  liga: LigaEnum;
 
   @Field()
   createdAt: Date;

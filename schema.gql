@@ -9,8 +9,19 @@ type UserDto {
   fullname: String!
   avatar: String
   balance: Float!
+  exp: Float!
+  level: Float!
+  liga: LigaEnum!
   createdAt: DateTime!
   updatedAt: DateTime!
+}
+
+enum LigaEnum {
+  BRONZE
+  SILVER
+  GOLD
+  PLATINUM
+  DIAMOND
 }
 
 """
@@ -18,12 +29,52 @@ A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date
 """
 scalar DateTime
 
+type UserStatisticsDto {
+  totalBets: Float!
+  winningBets: Float!
+  headsGames: Float!
+  tailsGames: Float!
+  highestPayout: Float!
+  leaderboardPlace: Float
+}
+
+type SuccessOutput {
+  success: Boolean!
+}
+
+type LeaderBoardRewardDto {
+  id: String!
+  order: Float!
+  amount: Float!
+  status: RewardStatus!
+}
+
+enum RewardStatus {
+  SUCCESS
+  ERROR
+  PENDING
+}
+
 type LeaderDto {
   id: String!
-  username: String
-  fullname: String!
-  net_gains: Float!
-  last_bet_created_at: DateTime
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  amount: Float!
+  userId: String!
+  user: UserDto
+  leaderBoardId: String
+  rewardId: String
+}
+
+type LeaderBoardDto {
+  id: String!
+  startDate: DateTime!
+  endDate: DateTime!
+  status: String!
+  rewards: [LeaderBoardRewardDto!]
+  leaders: [LeaderDto!]
+  createdAt: DateTime!
+  updatedAt: DateTime!
 }
 
 type BetDto {
@@ -66,24 +117,43 @@ type ActualDetailsDto {
   ratioSides: [Int!]!
 }
 
-type SuccessOutput {
-  success: Boolean!
-}
-
 type ActiveClientsDto {
   activeCliets: Int!
 }
 
 type Query {
   getMe: UserDto!
-  getLeaders: [LeaderDto!]!
+  getMyStatistics: UserStatisticsDto!
+  getLeaderBoard(take: Float, skip: Float): LeaderBoardDto!
   getActualDetails: ActualDetailsDto!
   validateTelegramHash(query: String!): SuccessOutput!
   getActiveClients: ActiveClientsDto!
 }
 
 type Mutation {
+  createLeaderBoard(status: LeaderBoardStatus, startDate: DateTime!, endDate: DateTime!, rewards: [CreateLeaderBoardRewardArgs!]): SuccessOutput!
+  updateLeaderBoard(status: LeaderBoardStatus, startDate: DateTime, endDate: DateTime, id: String!, rewards: [UpdateLeaderBoardRewardArgs!]): SuccessOutput!
+  deleteLeaderBoard(id: String!): SuccessOutput!
   play(bet: Float!, side: CoinSide!): CoinFlipBetGameDto!
+}
+
+enum LeaderBoardStatus {
+  CLOSED
+  ACTIVE
+  PENDING
+}
+
+input CreateLeaderBoardRewardArgs {
+  order: Float!
+  amount: Float!
+}
+
+input UpdateLeaderBoardRewardArgs {
+  order: Float
+  amount: Float
+  id: String
+  status: RewardStatus
+  leaderId: String
 }
 
 enum CoinSide {

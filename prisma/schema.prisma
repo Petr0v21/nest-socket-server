@@ -14,15 +14,21 @@ datasource db {
 }
 
 model User {
-  id                    String                  @id @default(uuid())
-  telegramId            String                  @unique
-  username              String?
-  fullname              String
-  avatar                String?
-  balance               Int                     @default(100)
+  id         String  @id @default(uuid())
+  telegramId String  @unique
+  username   String?
+  fullname   String
+  avatar     String?
+  balance    Int     @default(100)
+
+  exp   Int      @default(0)
+  liga  LigaEnum @default(BRONZE)
+  level Int      @default(1)
+
   games                 Game[]
   provablyFairUserSeeds ProvablyFairUserSeeds[]
   bets                  Bet[]
+  leaders               Leader[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -69,7 +75,72 @@ model ProvablyFairUserSeeds {
   user             User     @relation(fields: [userId], references: [id])
 }
 
+model LeaderBoard {
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  status LeaderBoardStatus @default(PENDING)
+
+  startDate DateTime
+  endDate   DateTime
+
+  rewards LeaderBoardReward[]
+  leaders Leader[]
+}
+
+model LeaderBoardReward {
+  id     String @id @default(uuid())
+  order  Int
+  amount Float
+
+  status RewardStatus @default(PENDING)
+
+  leaderBoardId String
+  leaderBoard   LeaderBoard @relation(fields: [leaderBoardId], references: [id])
+
+  leaderId String?
+  leader   Leader?
+}
+
+model Leader {
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  amount Float
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
+
+  leaderBoardId String
+  leaderBoard   LeaderBoard @relation(fields: [leaderBoardId], references: [id])
+
+  rewardId String?            @unique
+  reward   LeaderBoardReward? @relation(fields: [rewardId], references: [id])
+}
+
 enum CoinSide {
   HEADS
   TAILS
+}
+
+enum RewardStatus {
+  SUCCESS
+  ERROR
+  PENDING
+}
+
+enum LeaderBoardStatus {
+  CLOSED
+  ACTIVE
+  PENDING
+}
+
+enum LigaEnum {
+  BRONZE
+  SILVER
+  GOLD
+  PLATINUM
+  DIAMOND
 }

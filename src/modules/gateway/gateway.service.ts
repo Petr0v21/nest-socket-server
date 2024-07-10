@@ -11,6 +11,7 @@ import { Server, Socket } from 'socket.io';
 import { EventType } from './eventType.enum';
 import { AuthService } from '../auth/auth.service';
 import { GameDto } from '../game/graphql/dto/Game.dto';
+import { LeaderBoardDto } from '../board/graphql/dto/LeaderBoard.dto';
 
 @Injectable()
 @WebSocketGateway()
@@ -89,5 +90,10 @@ export class GatewayService
     ratioSides: [number, number];
   }) {
     this.wss.to(payload.clientId).emit(EventType.UpdateHistory, payload);
+  }
+
+  @OnEvent(EventType.PullActualLeaderBoard)
+  pullLeaderBoard(payload: LeaderBoardDto) {
+    this.wss.emit(EventType.UpdatedActualLeaderBoard, payload);
   }
 }

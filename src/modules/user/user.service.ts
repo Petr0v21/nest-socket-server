@@ -1,9 +1,10 @@
 import { Injectable } from '@nestjs/common';
-import { Prisma, User } from '@prisma/client';
+import { LigaEnum, Prisma, User } from '@prisma/client';
 import { PrismaService } from 'prisma/prisma.service';
 import { EventType } from '../gateway/eventType.enum';
 import { EventEmitter2 } from '@nestjs/event-emitter';
-import { LeaderDto } from './graphql/dto/Leader.dto';
+import { LEVEL_DETAILS } from 'src/utils';
+import { UserStatisticsDto } from './graphql/dto/UserStatistics.dto';
 
 @Injectable()
 export class UserService {
@@ -71,62 +72,79 @@ export class UserService {
     return user && user.balance >= amountToCheck;
   }
 
-  async updateBalance(amount: number, isRise: boolean, { id, balance }: User) {
+  async updateBalance(
+    amount: number,
+    isRise: boolean,
+    { id, balance, exp }: User,
+  ) {
+    const userLevelDetails = this.getUserLevel(exp + amount);
     await this.updateUser({
       where: {
         id: id,
       },
       data: {
-        balance: isRise ? balance + amount : balance - amount,
+        balance: isRise
+          ? {
+              increment: amount,
+            }
+          : {
+              decrement: amount,
+            },
+        exp: {
+          increment: amount,
+        },
+        ...userLevelDetails,
       },
     });
     this.eventEmitter.emit(EventType.UpdateUserBalance, {
       id,
       balance: isRise ? balance + amount : balance - amount,
+      exp: exp + amount,
+      ...userLevelDetails,
     });
   }
 
-  async getLeaders(): Promise<LeaderDto[]> {
-    const result = await this.prismaService.$queryRaw<LeaderDto[]>`
-      WITH UserNetGains AS (
-        SELECT 
-            u.id,
-            u.username,
-            u.fullname,
-            COALESCE(SUM(CASE WHEN ub.payout = 0 THEN -ub.amount ELSE ub.payout END), 0) AS net_gains
-        FROM 
-            "User" u
-        LEFT JOIN 
-            "Bet" ub ON u.id = ub."userId"
-        GROUP BY 
-            u.id, u.username, u.fullname
-      ),
-      LastBets AS (
-          SELECT DISTINCT ON (ub."userId")
-              ub.id AS bet_id,
-              ub."userId" AS user_id,
-              ub.amount,
-              ub.payout,
-              ub."createdAt"
-          FROM 
-              "Bet" ub
-          ORDER BY 
-              ub."userId", ub."createdAt" DESC
+  getUserLevel(exp: number) {
+    return LEVEL_DETAILS.reduce(
+      (acc, levelDetail) => {
+        if (exp >= levelDetail.exp) {
+          return { level: levelDetail.level, liga: levelDetail.liga };
+        }
+        return acc;
+      },
+      { level: 1, liga: LigaEnum.BRONZE },
+    );
+  }
+
+  async getUserStatistics(userId: string, leaderBoardId?: string) {
+    const result = (
+      await this.prismaService.$queryRaw<UserStatisticsDto[]>`
+      WITH LeaderboardRank AS (
+        SELECT
+          "userId",
+          RANK() OVER (ORDER BY "amount" DESC) AS rank
+        FROM "Leader"
+        WHERE "leaderBoardId" = ${leaderBoardId}
       )
-      SELECT 
-          u.id,
-          u.username,
-          u.fullname,
-          u.net_gains,
-          lb."createdAt" AS last_bet_created_at
-      FROM 
-          UserNetGains u
-      LEFT JOIN 
-          LastBets lb ON u.id = lb.user_id
-      ORDER BY 
-          u.net_gains DESC
-      LIMIT 20;
-    `;
-    return result;
+      SELECT
+        (SELECT COUNT(*) FROM "Bet" WHERE "userId" = ${userId}) AS "totalBets",
+        (SELECT COUNT(*) FROM "Bet" WHERE "userId" = ${userId} AND "payout" > 0) AS "winningBets",
+        (SELECT COUNT(*) FROM "Game" WHERE "userId" = ${userId} AND "sideResult" = 'HEADS') AS "headsGames",
+        (SELECT COUNT(*) FROM "Game" WHERE "userId" = ${userId} AND "sideResult" = 'TAILS') AS "tailsGames",
+        (SELECT MAX("payout") FROM "Bet" WHERE "userId" = ${userId}) AS "highestPayout",
+        (SELECT "rank" FROM LeaderboardRank WHERE "userId" = ${userId}) AS "leaderboardPlace"
+    `
+    )[0];
+
+    return {
+      totalBets: Number(result.totalBets),
+      winningBets: Number(result.winningBets),
+      headsGames: Number(result.headsGames),
+      tailsGames: Number(result.tailsGames),
+      highestPayout: result.highestPayout,
+      leaderboardPlace: result.leaderboardPlace
+        ? Number(result.leaderboardPlace)
+        : undefined,
+    };
   }
 }

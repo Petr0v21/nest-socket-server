@@ -13,6 +13,8 @@ import { AuthModule } from './modules/auth/auth.module';
 import { GatewayModule } from './modules/gateway/gateway.module';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import { BetsModule } from './modules/bets/bets.module';
+import { LeaderBoardModule } from './modules/board/board.module';
+import { ScheduleModule } from '@nestjs/schedule';
 
 @Module({
   imports: [
@@ -28,8 +30,10 @@ import { BetsModule } from './modules/bets/bets.module';
     UserModule,
     BetsModule,
     GameModule,
+    LeaderBoardModule,
     AuthModule,
     GatewayModule,
+    ScheduleModule.forRoot(),
     TelegramModule.forRoot(process.env.BOT_TOKEN),
   ],
   providers: [UserService],

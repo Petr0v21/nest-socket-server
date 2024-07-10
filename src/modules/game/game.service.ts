@@ -140,6 +140,11 @@ export class GameService {
     await this.userService.updateBalance(args.bet, isWon, args.user);
     await this.emitGamesHistoryWithStatistic();
 
+    this.eventEmitter.emit(EventType.LeaderUpsertInActualLeaderBoard, {
+      userId: args.user.id,
+      amount: args.bet,
+    });
+
     return {
       id: bet.id,
       amount: bet.amount,

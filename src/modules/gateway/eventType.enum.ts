@@ -4,4 +4,8 @@ export enum EventType {
   UpdateActiveClients = 'UpdateActiveClients',
   GiveHistoryToOneUser = 'GiveHistoryToOneUser',
   UserConnected = 'UserConnected',
+  LeaderUpsertInActualLeaderBoard = 'LeaderUpsertInActualLeaderBoard',
+  GetActualLeaderBoard = 'GetActualLeaderBoard',
+  UpdatedActualLeaderBoard = 'UpdatedActualLeaderBoard',
+  PullActualLeaderBoard = 'PullActualLeaderBoard',
 }
