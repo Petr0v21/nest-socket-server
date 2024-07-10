@@ -41,6 +41,9 @@ export class AuthMiddleware implements NestMiddleware {
 
       const query = req.headers['key-token']?.toString();
 
+      console.log('query', query);
+      
+
       req.user = await this.authService.validateUserHash(query);
 
       return next();
