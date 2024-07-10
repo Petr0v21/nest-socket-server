@@ -92,7 +92,8 @@ export class LeaderBoardService {
         },
       },
     });
-    if (!data.skipLeaders || data.skipLeaders < result.rewards.length) {
+    if (result.leaders &&
+      (!data.skipLeaders || data.skipLeaders < result.rewards.length)) {
       result.leaders = result.leaders.map((item, index) => {
         return {
           ...item,
