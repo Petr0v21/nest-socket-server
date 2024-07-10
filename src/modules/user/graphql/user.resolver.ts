@@ -23,7 +23,7 @@ export class UserResolver {
       await this.leaderBoardService.getActualLeaderBoard({ takeLeaders: 0 });
     return await this.userService.getUserStatistics(
       user.id,
-      actualLeaderBoard.id,
+      actualLeaderBoard?.id,
     );
   }
 }
