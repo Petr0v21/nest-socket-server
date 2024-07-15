@@ -10,7 +10,7 @@ export class BetsService {
     private readonly userService: UserService,
   ) {}
 
-  async createBet(data: Prisma.BetUncheckedCreateInput & any): Promise<Bet> {
+  async createBet(data: Prisma.BetUncheckedCreateInput): Promise<Bet> {
     Logger.log({
       context: BetsService.name,
       message: 'Creating bet',
