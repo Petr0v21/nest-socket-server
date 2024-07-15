@@ -19,7 +19,7 @@ model User {
   username   String?
   fullname   String
   avatar     String?
-  balance    Int     @default(100)
+  balance    Float   @default(100)
 
   exp   Int      @default(0)
   liga  LigaEnum @default(BRONZE)
@@ -58,6 +58,8 @@ model Bet {
   payout    Float     @default(0)
   user      User      @relation(fields: [userId], references: [id])
   game      Game      @relation(fields: [gameId], references: [id])
+
+  commission Float @default(0)
 
   betData Json @default("{}")
 }
