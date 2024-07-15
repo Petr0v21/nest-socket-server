@@ -18,7 +18,7 @@ export class LeaderBoardResolver {
     private readonly rewardService: LeaderBoardRewardService,
   ) {}
 
-  @Query(() => LeaderBoardDto)
+  @Query(() => LeaderBoardDto, { nullable: true })
   async getLeaderBoard(@Args() { skip, take }: FindManyArgs) {
     return await this.boardService.getActualLeaderBoard({
       skipLeaders: skip,

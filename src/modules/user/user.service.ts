@@ -93,27 +93,33 @@ export class UserService {
         exp: {
           increment: amount,
         },
-        ...userLevelDetails,
+        level: userLevelDetails.currentLevelDetail.level,
+        liga: userLevelDetails.currentLevelDetail.liga,
       },
     });
     this.eventEmitter.emit(EventType.UpdateUserBalance, {
       id,
       balance: isRise ? balance + amount : balance - amount,
+      ...userLevelDetails.currentLevelDetail,
+      nextLevel: userLevelDetails.nextLevelDetail,
       exp: exp + amount,
-      ...userLevelDetails,
     });
   }
 
   getUserLevel(exp: number) {
-    return LEVEL_DETAILS.reduce(
-      (acc, levelDetail) => {
-        if (exp >= levelDetail.exp) {
-          return { level: levelDetail.level, liga: levelDetail.liga };
-        }
-        return acc;
-      },
-      { level: 1, liga: LigaEnum.BRONZE },
-    );
+    let currentLevelDetail = LEVEL_DETAILS[0];
+    let nextLevelDetail = null;
+
+    for (const levelDetail of LEVEL_DETAILS) {
+      if (exp >= levelDetail.exp) {
+        currentLevelDetail = levelDetail;
+      } else {
+        nextLevelDetail = levelDetail;
+        break;
+      }
+    }
+
+    return { currentLevelDetail, nextLevelDetail };
   }
 
   async getUserStatistics(userId: string, leaderBoardId?: string) {

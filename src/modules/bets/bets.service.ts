@@ -1,10 +1,14 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 import { Bet, Prisma } from '@prisma/client';
 import { PrismaService } from 'prisma/prisma.service';
+import { UserService } from '../user/user.service';
 
 @Injectable()
 export class BetsService {
-  constructor(private prismaService: PrismaService) {}
+  constructor(
+    private prismaService: PrismaService,
+    private readonly userService: UserService,
+  ) {}
 
   async createBet(data: Prisma.BetUncheckedCreateInput): Promise<Bet> {
     Logger.log({
@@ -43,5 +47,30 @@ export class BetsService {
     });
 
     return bet;
+  }
+
+  async getBetCommission(amount: number, userId: string) {
+    const percentHouse = process.env.PERCENT_HOUSE
+      ? Number(process.env.PERCENT_HOUSE)
+      : 0.05;
+    const commission = amount * percentHouse;
+    const checkBalance = await this.userService.checkBalance(
+      amount + commission,
+      userId,
+    );
+    if (!checkBalance) {
+      throw new BadRequestException('Bet amount more than user balance!');
+    }
+    await this.userService.updateUser({
+      where: {
+        id: userId,
+      },
+      data: {
+        balance: {
+          decrement: commission,
+        },
+      },
+    });
+    return commission;
   }
 }

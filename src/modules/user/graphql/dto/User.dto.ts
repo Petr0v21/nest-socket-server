@@ -6,6 +6,18 @@ registerEnumType(LigaEnum, {
 });
 
 @ObjectType()
+export class NextLevelDto {
+  @Field()
+  exp: number;
+
+  @Field()
+  level: number;
+
+  @Field(() => LigaEnum)
+  liga: LigaEnum;
+}
+
+@ObjectType()
 export class UserDto {
   @Field()
   id: string;
@@ -33,6 +45,9 @@ export class UserDto {
 
   @Field(() => LigaEnum)
   liga: LigaEnum;
+
+  @Field(() => NextLevelDto, { nullable: true })
+  nextLevel?: NextLevelDto;
 
   @Field()
   createdAt: Date;

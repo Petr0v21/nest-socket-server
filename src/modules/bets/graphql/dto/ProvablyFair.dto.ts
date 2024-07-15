@@ -1,13 +1,16 @@
 import { Field, ObjectType } from '@nestjs/graphql';
 
 @ObjectType()
-export class BetDto {
+export class ProvablyFairDto {
   @Field()
   id: string;
 
   @Field()
-  amount: number;
+  clientSeed: string;
 
   @Field()
-  payout: number;
+  serverSeed: string;
+
+  @Field()
+  nonce: number;
 }

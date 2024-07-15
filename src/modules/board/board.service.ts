@@ -92,8 +92,11 @@ export class LeaderBoardService {
         },
       },
     });
-    if (result && result.leaders &&
-      (!data.skipLeaders || data.skipLeaders < result.rewards.length)) {
+    if (
+      result &&
+      result.leaders &&
+      (!data.skipLeaders || data.skipLeaders < result.rewards.length)
+    ) {
       result.leaders = result.leaders.map((item, index) => {
         return {
           ...item,

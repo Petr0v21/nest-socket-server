@@ -13,8 +13,12 @@ export class UserResolver {
   ) {}
 
   @Query(() => UserDto)
-  getMe(@Context() { req: { user } }: ContextCustomType) {
-    return user;
+  getMe(@Context() { req: { user } }: ContextCustomType): UserDto {
+    const nextLevel = this.userService.getUserLevel(user.exp).nextLevelDetail;
+    return {
+      ...user,
+      nextLevel,
+    };
   }
 
   @Query(() => UserStatisticsDto)

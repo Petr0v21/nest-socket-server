@@ -57,9 +57,23 @@ export class GameService {
     serverSeed: string,
     clientSeed: string,
     nonce: number,
-  ): CoinSide {
+  ): boolean {
     const rng = seedRandom(`${serverSeed}:${clientSeed}:${nonce}`);
-    return rng() < 0.25 ? CoinSide.HEADS : CoinSide.TAILS;
+    return (
+      rng() < (process.env.PERCENT_WIN ? Number(process.env.PERCENT_WIN) : 0.25)
+    );
+  }
+
+  getCoinFlipResultSide(isWon: boolean, userSide: CoinSide) {
+    if (isWon) {
+      return userSide;
+    } else {
+      if (userSide === CoinSide.HEADS) {
+        return CoinSide.TAILS;
+      } else {
+        return CoinSide.HEADS;
+      }
+    }
   }
 
   async getActualDetails(): Promise<ActualDetailsDto> {
@@ -96,7 +110,9 @@ export class GameService {
     });
   }
 
-  async placeBet(args: PlayArgs & { user: User }): Promise<CoinFlipBetGameDto> {
+  async placeBet(
+    args: PlayArgs & { user: User; commission: number },
+  ): Promise<CoinFlipBetGameDto> {
     const seedInfo = await this.provablyFairService.getCurrentSeedPrivate(
       args.user,
     );
@@ -105,13 +121,9 @@ export class GameService {
     }
 
     const { serverSeed, clientSeed, nonce } = seedInfo;
-    const coinFlipResult = this.getCoinFlipResult(
-      serverSeed,
-      clientSeed,
-      nonce,
-    );
+    const isWon = this.getCoinFlipResult(serverSeed, clientSeed, nonce);
 
-    const isWon = coinFlipResult === args.side;
+    const coinFlipResult = this.getCoinFlipResultSide(isWon, args.side);
 
     const game = await this.prismaService.game.create({
       data: {
@@ -134,6 +146,7 @@ export class GameService {
       settledAt: new Date(),
       payout: isWon ? args.bet : 0,
       userId: args.user.id,
+      commission: args.commission,
     });
 
     await this.provablyFairService.incrementNonce(seedInfo.id);
